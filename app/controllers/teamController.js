@@ -1,14 +1,17 @@
 // Team controller - handles HTTP logic for team routes
 const Team = require("../models/teamModel");
+const Messages = require("../messages");
 
 // Get all teams
 const getTeams = async (req, res) => {
   try {
     // Pull every team from Mongo
-    const teams = await Team.find();
+    const teams = await Team.find().select("-__v");
     res.status(200).json(teams);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res
+      .status(500)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -16,15 +19,17 @@ const getTeams = async (req, res) => {
 const getTeamById = async (req, res) => {
   try {
     // Look up by the id in the route param
-    const team = await Team.findById(req.params.id);
+    const team = await Team.findById(req.params.id).select("-__v");
 
     if (!team) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({ message: Messages.team_not_found });
     }
 
     res.status(200).json(team);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res
+      .status(500)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -35,9 +40,13 @@ const createTeam = async (req, res) => {
     const newTeam = new Team(req.body);
     const savedTeam = await newTeam.save();
 
-    res.status(201).json(savedTeam);
+    const cleanTeam = await Team.findById(savedTeam._id).select("-__v");
+
+    res.status(201).json(cleanTeam);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res
+      .status(400)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -49,15 +58,17 @@ const updateTeam = async (req, res) => {
       req.params.id,
       { $set: req.body },
       { new: true, runValidators: true }
-    );
+    ).select("-__v");
 
     if (!updatedTeam) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({ message: Messages.team_not_found });
     }
 
     res.status(200).json(updatedTeam);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res
+      .status(400)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -68,12 +79,14 @@ const deleteTeam = async (req, res) => {
     const deletedTeam = await Team.findByIdAndDelete(req.params.id);
 
     if (!deletedTeam) {
-      return res.status(404).json({ message: "Team not found" });
+      return res.status(404).json({ message: Messages.team_not_found });
     }
 
-    res.status(204).send();
+    res.status(200).json({ message: Messages.team_deleted });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res
+      .status(500)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 

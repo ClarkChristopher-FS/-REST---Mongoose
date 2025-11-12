@@ -72,3 +72,5 @@ Status codes:
 - 500 if the server crashes or Mongo is down
 
 Video link - https://youtu.be/v1avNg9yPCo
+
+Module 2 tests Video - https://youtu.be/m5kfgJSzwFM
