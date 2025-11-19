@@ -6,16 +6,19 @@ const Messages = require("../messages");
 // Get all players with filtering, select, sort, and pagination
 const getPlayers = async (req, res) => {
   try {
-    // Convert query params to MongoDB operators (gte, lt, etc)
+    // Turn query params into MongoDB operators like $gte, $lt
     const queryString = JSON.stringify(req.query);
     const queryObj = JSON.parse(
-      queryString.replace(/\b(gt|gte|lt|lte|ne|in|nin)\b/g, (match) => `$${match}`)
+      queryString.replace(
+        /\b(gt|gte|lt|lte|ne|in|nin)\b/g,
+        (match) => `$${match}`
+      )
     );
 
-    // Build query with populate for team info
+    // Start building the query with populate for team info
     let query = Player.find(queryObj).populate("team", "name city -_id");
 
-    // Handle select from query string - exclude fields
+    // If they want specific fields, use select
     if (req.query.select) {
       const fields = req.query.select.split(",").join(" ");
       query = query.select(fields);
@@ -23,13 +26,13 @@ const getPlayers = async (req, res) => {
       query = query.select("-__v");
     }
 
-    // Handle sort from query string
+    // Sort if they give us a sort param
     if (req.query.sort) {
       const sortBy = req.query.sort.split(",").join(" ");
       query = query.sort(sortBy);
     }
 
-    // Handle pagination - page and limit
+    // Pagination stuff - page and limit
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -67,7 +70,7 @@ const getPlayerById = async (req, res) => {
 // Create a new player (ensures team exists)
 const createPlayer = async (req, res) => {
   try {
-    // Make sure the team id coming in is real
+    // Check if the team id is real
     const teamExists = await Team.findById(req.body.team);
 
     if (!teamExists) {

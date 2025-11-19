@@ -5,16 +5,19 @@ const Messages = require("../messages");
 // Get all teams with filtering, select, sort, and pagination
 const getTeams = async (req, res) => {
   try {
-    // Convert query params to MongoDB operators (gte, lt, etc)
+    // Turn query params into MongoDB operators like $gte, $lt
     const queryString = JSON.stringify(req.query);
     const queryObj = JSON.parse(
-      queryString.replace(/\b(gt|gte|lt|lte|ne|in|nin)\b/g, (match) => `$${match}`)
+      queryString.replace(
+        /\b(gt|gte|lt|lte|ne|in|nin)\b/g,
+        (match) => `$${match}`
+      )
     );
 
-    // Build query from query params (foundedYear[gte], isActive, etc)
+    // Start building the query
     let query = Team.find(queryObj);
 
-    // Handle select from query string - exclude fields
+    // If they want specific fields, use select
     if (req.query.select) {
       const fields = req.query.select.split(",").join(" ");
       query = query.select(fields);
@@ -22,13 +25,13 @@ const getTeams = async (req, res) => {
       query = query.select("-__v");
     }
 
-    // Handle sort from query string
+    // Sort if they give us a sort param
     if (req.query.sort) {
       const sortBy = req.query.sort.split(",").join(" ");
       query = query.sort(sortBy);
     }
 
-    // Handle pagination - page and limit
+    // Pagination stuff - page and limit
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
@@ -64,7 +67,7 @@ const getTeamById = async (req, res) => {
 // Create a new team
 const createTeam = async (req, res) => {
   try {
-    // Build a new team using the request body
+    // Create new team from request body
     const newTeam = new Team(req.body);
     const savedTeam = await newTeam.save();
 
