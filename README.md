@@ -30,6 +30,16 @@ Teams:
   "isActive": true
   }
 - GET /api/teams
+  Query string examples:
+  - /api/teams?foundedYear[gte]=2000 (teams founded 2000 or later)
+  - /api/teams?foundedYear[lt]=2010 (teams founded before 2010)
+  - /api/teams?foundedYear[gte]=2000&foundedYear[lt]=2010 (between 2000-2010)
+  - /api/teams?isActive=true (only active teams)
+  - /api/teams?select=name,city (only show name and city fields)
+  - /api/teams?sort=foundedYear (sort by foundedYear ascending)
+  - /api/teams?sort=-foundedYear (sort by foundedYear descending)
+  - /api/teams?page=1&limit=5 (pagination - page 1, 5 items per page)
+  - /api/teams?foundedYear[gte]=2000&sort=foundedYear&page=1&limit=5 (combined filters)
 - GET /api/teams/:id
 - PUT /api/teams/:id
   Body example:
@@ -52,6 +62,17 @@ Players:
   "team": "paste the team id"
   }
 - GET /api/players
+  Query string examples:
+  - /api/players?jerseyNumber[gte]=10 (jersey number 10 or higher)
+  - /api/players?jerseyNumber[lt]=20 (jersey number less than 20)
+  - /api/players?jerseyNumber[gte]=10&jerseyNumber[lt]=20 (between 10-19)
+  - /api/players?position=Forward (only forwards)
+  - /api/players?isCaptain=true (only captains)
+  - /api/players?select=fullName,position (only show fullName and position)
+  - /api/players?sort=jerseyNumber (sort by jerseyNumber ascending)
+  - /api/players?sort=-jerseyNumber (sort by jerseyNumber descending)
+  - /api/players?page=1&limit=5 (pagination - page 1, 5 items per page)
+  - /api/players?jerseyNumber[gte]=10&sort=jerseyNumber&page=1&limit=5 (combined filters)
 - GET /api/players/:id
 - PUT /api/players/:id
   Body example:

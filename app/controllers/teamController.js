@@ -2,11 +2,39 @@
 const Team = require("../models/teamModel");
 const Messages = require("../messages");
 
-// Get all teams
+// Get all teams with filtering, select, sort, and pagination
 const getTeams = async (req, res) => {
   try {
-    // Pull every team from Mongo
-    const teams = await Team.find().select("-__v");
+    // Convert query params to MongoDB operators (gte, lt, etc)
+    const queryString = JSON.stringify(req.query);
+    const queryObj = JSON.parse(
+      queryString.replace(/\b(gt|gte|lt|lte|ne|in|nin)\b/g, (match) => `$${match}`)
+    );
+
+    // Build query from query params (foundedYear[gte], isActive, etc)
+    let query = Team.find(queryObj);
+
+    // Handle select from query string - exclude fields
+    if (req.query.select) {
+      const fields = req.query.select.split(",").join(" ");
+      query = query.select(fields);
+    } else {
+      query = query.select("-__v");
+    }
+
+    // Handle sort from query string
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ");
+      query = query.sort(sortBy);
+    }
+
+    // Handle pagination - page and limit
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    const teams = await query;
     res.status(200).json(teams);
   } catch (error) {
     res

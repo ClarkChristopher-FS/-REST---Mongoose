@@ -3,17 +3,44 @@ const Player = require("../models/playerModel");
 const Team = require("../models/teamModel");
 const Messages = require("../messages");
 
-const playerQuery = () =>
-  Player.find().select("-__v").populate("team", "name city -_id");
-
-// Get all players (with team info)
+// Get all players with filtering, select, sort, and pagination
 const getPlayers = async (req, res) => {
   try {
-    // Populate grabs team name and city so we can see the relation
-    const players = await playerQuery();
+    // Convert query params to MongoDB operators (gte, lt, etc)
+    const queryString = JSON.stringify(req.query);
+    const queryObj = JSON.parse(
+      queryString.replace(/\b(gt|gte|lt|lte|ne|in|nin)\b/g, (match) => `$${match}`)
+    );
+
+    // Build query with populate for team info
+    let query = Player.find(queryObj).populate("team", "name city -_id");
+
+    // Handle select from query string - exclude fields
+    if (req.query.select) {
+      const fields = req.query.select.split(",").join(" ");
+      query = query.select(fields);
+    } else {
+      query = query.select("-__v");
+    }
+
+    // Handle sort from query string
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ");
+      query = query.sort(sortBy);
+    }
+
+    // Handle pagination - page and limit
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+
+    const players = await query;
     res.status(200).json(players);
   } catch (error) {
-    res.status(500).json({ message: Messages.server_error, error: error.message });
+    res
+      .status(500)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -31,7 +58,9 @@ const getPlayerById = async (req, res) => {
 
     res.status(200).json(player);
   } catch (error) {
-    res.status(500).json({ message: Messages.server_error, error: error.message });
+    res
+      .status(500)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -55,7 +84,9 @@ const createPlayer = async (req, res) => {
 
     res.status(201).json(cleanPlayer);
   } catch (error) {
-    res.status(400).json({ message: Messages.server_error, error: error.message });
+    res
+      .status(400)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -86,7 +117,9 @@ const updatePlayer = async (req, res) => {
 
     res.status(200).json(updatedPlayer);
   } catch (error) {
-    res.status(400).json({ message: Messages.server_error, error: error.message });
+    res
+      .status(400)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
@@ -102,7 +135,9 @@ const deletePlayer = async (req, res) => {
 
     res.status(200).json({ message: Messages.player_deleted });
   } catch (error) {
-    res.status(500).json({ message: Messages.server_error, error: error.message });
+    res
+      .status(500)
+      .json({ message: Messages.server_error, error: error.message });
   }
 };
 
