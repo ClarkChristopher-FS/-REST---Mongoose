@@ -117,7 +117,3 @@ Status codes:
 - 400 when validation fails
 - 404 when id not found
 - 500 if server crashes or mongo is down
-
-Video link - https://youtu.be/v1avNg9yPCo
-
-Module 2 tests Video - https://youtu.be/m5kfgJSzwFM
